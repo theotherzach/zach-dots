@@ -1,0 +1,13 @@
+[user]
+	name = TheOtherZach
+	email = briggszj@gmail.com
+[color]
+	ui = auto
+[credential]
+	helper = osxkeychain
+[alias]
+    lo = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
+    st = status -sb
+    di = diff --word-diff
+[push]
+	default = simple
