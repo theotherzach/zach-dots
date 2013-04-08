@@ -29,7 +29,7 @@ EDITOR="vim"
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git rvm bundler brew gem vi-mode zsh-syntax-highlighting nyan)
+plugins=(git rvm bundler brew gem zsh-syntax-highlighting nyan)
 
 # aliases and such
 # make a new note
