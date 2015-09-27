@@ -1,61 +1,59 @@
-# Path to your oh-my-zsh configuration.
-ZSH=$HOME/.oh-my-zsh
+# The following lines were added by compinstall
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="robbyrussell"
-EDITOR="vim"
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+zstyle ':completion:*' completer _expand _complete _ignored
+zstyle ':completion:*' list-colors ''
+zstyle :compinstall filename '$HOME/.zshrc'
 
-# Set to this to use case-sensitive completion
-# CASE_SENSITIVE="true"
+autoload -Uz compinit
+compinit
+# End of lines added by compinstall
+# Lines configured by zsh-newuser-install
+HISTFILE=~/.histfile
+HISTSIZE=10000
+SAVEHIST=10000
+# End of lines configured by zsh-newuser-install
 
-# Comment this out to disable weekly auto-update checks
-# DISABLE_AUTO_UPDATE="true"
+setopt extended_glob
 
-# Uncomment following line if you want to disable colors in ls
- # DISABLE_LS_COLORS="true"
+fpath=(/usr/local/share/zsh-completions $fpath)
 
-# Uncomment following line if you want to disable autosetting terminal title.
-# DISABLE_AUTO_TITLE="true"
+export EDITOR=vim
 
-# Uncomment following line if you want red dots to be displayed while waiting for completion
-# COMPLETION_WAITING_DOTS="true"
+#ls colors
+export CLICOLOR=true
+export LSCOLORS='Gxfxcxdxdxegedabagacad'
 
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git rvm bundler brew gem zsh-syntax-highlighting nyan)
+# GIT_PS1_SHOWDIRTYSTATE=true
+# GIT_PS1_SHOWUPSTREAM="auto"
+# GIT_PS1_SHOWCOLORHINTS=true
+# GIT_PS1_SHOWUNTRACKEDFILES=true
+# # PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
+# # PROMPT_COMMAND='__git_ps1 "\W" "\\\$ "'
+# PS1=$'\e[0;31m$ \e[0m'
 
-# aliases and such
-# make a new note
-n() {   vim ~/notes/"$*".txt }  
-# search notes
-nls() {     ls -c ~/notes/ | grep "$*" } 
-# cd to ~/Code
-c() { cd ~/Code/$1; }
-# cd to home
-h() { cd ~/; }
+setopt prompt_subst
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' actionformats \
+    '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{3}|%F{1}%a%F{5}]%f '
+zstyle ':vcs_info:*' formats       \
+    '%F{5}(%f%s%F{5})%F{3}-%F{5}[%F{2}%b%F{5}]%f '
+zstyle ':vcs_info:(sv[nk]|bzr):*' branchformat '%b%F{1}:%F{3}%r'
 
-alias knife='nocorrect knife'
-alias git='nocorrect git'
-alias rake='noglob rake'
-alias bundle='noglob bundle'
-alias tmux="tmux -2"
-alias wemux="wemux -2"
+zstyle ':vcs_info:*' enable git cvs svn
 
-# My router's IP address
-ip()  { curl "http://www.networksecuritytoolkit.org/nst/cgi-bin/ip.cgi" }
-source $ZSH/oh-my-zsh.sh
+# or use pre_cmd, see man zshcontrib
+vcs_info_wrapper() {
+  vcs_info
+  if [ -n "$vcs_info_msg_0_" ]; then
+    echo "%{$fg[grey]%}${vcs_info_msg_0_}%{$reset_color%}$del"
+  fi
+}
 
-# Customize to your needs...
+source $HOME/.zsh/zsh-git-prompt/zshrc.sh
+RPROMPT=$'$(git_super_status)'
+PROMPT='%B%~%b $ '
 
-PATH=/usr/local/bin:$PATH:$HOME/bin
-export HADOOP_HOME="/usr/local/Cellar/hadoop/1.1.1/libexec"
-# [[ screen-256color = screen ]] && rvm use default
-
-# PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+alias remaster="git checkout master && git fetch origin && git reset --hard origin/master"
+alias restaging="git checkout staging && git fetch origin && git reset --hard origin/staging"
+alias shipit="restaging && remaster && git merge staging && git push origin master"
+alias gitpurge="git fetch origin && git remote prune origin && git checkout master && git branch -r --merged | grep -v master | grep -v staging | sed -e 's/origin\//:/' | xargs git push origin && git reset --hard origin/master && git branch --merged | grep -v master | grep -v staging | xargs git branch -d"
