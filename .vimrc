@@ -1,10 +1,42 @@
-call pathogen#runtime_append_all_bundles()
+" set nocompatible
+" filetype off
+
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+Plugin 'gmarik/Vundle.vim'
+Plugin 'nanotech/jellybeans.vim'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-repeat'
+Plugin 'tpope/vim-commentary'
+Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-abolish'
+Plugin 'guns/vim-clojure-static'
+Plugin 'guns/vim-clojure-highlight'
+Plugin 'tpope/vim-leiningen'
+Plugin 'tpope/vim-projectionist'
+Plugin 'tpope/vim-dispatch'
+Plugin 'tpope/vim-fireplace'
+Plugin 'tpope/vim-unimpaired'
+Bundle 'yegappan/mru'
+Bundle "pangloss/vim-javascript"
+Bundle "rking/vim-detailed"
+Bundle "cocopon/iceberg.vim"
+Bundle "reedes/vim-colors-pencil"
+Bundle "w0ng/vim-hybrid"
+Bundle "wting/rust.vim"
+Bundle "kchmck/vim-coffee-script"
+Bundle "Shougo/vimproc.vim"
+Bundle "Quramy/tsuquyomi"
+Bundle "leafgarland/typescript-vim"
+
+call vundle#end()
+filetype plugin indent on
+
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " BASIC EDITING CONFIGURATION
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set nocompatible
-" allow unsaved background buffers and remember marks/undo for them
+" """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set hidden
 " remember more commands and search history
 set history=10000
@@ -33,7 +65,7 @@ set shell=bash
 " http://www.shallowsky.com/linux/noaltscreen.html
 set t_ti= t_te=
 " keep more context when scrolling off the end of a buffer
-set scrolloff=3
+set scrolloff=4
 " Store temporary files in a central spot
 set backup
 set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
@@ -50,23 +82,29 @@ set wildmode=longest,list
 " make tab completion for files/ buffers act like bash
 set wildmenu
 " fix slow O inserts
-:set timeout timeoutlen=1000 ttimeoutlen=100
+:set timeout timeoutlen=800 ttimeoutlen=100
 " Ignores long-ass list of node modules
-set wildignore+=node_modules/**
-" set clipboard=unnamedplus
+set wildignore+=node_modules/**,generated/**,bower_components/**
 " Status Line
 :set statusline=%<%f\ (%{&ft})\ %-4(%m%)%=%-19(%3l,%02c%03V%)
 " Use the system clipboard
-set clipboard=unnamed "unsure if I like this, may back it out.
-"spellfile
-" :runtime plugin/spellfile.vim
-" :setlocal spell spelllang=en
+set clipboard=unnamed
+set undodir=~/.vim/undo
+set undofile
+set backupdir=~/.vim/backups
+set dir=~/.vim/swap
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" TYPESCRIPT
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+au BufRead,BufNewFile *.ts        setlocal filetype=typescript
+set rtp+=<your_path_here>/typescript-tools.vim/
+let g:TSS = ['tss','--module','commonjs']
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " LISTCHARS
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Change set list chars
-" set listchars=tab:▸\ ,eol:¬ "VIMcasts version
 " tpope listchars
 if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8') && version >= 700
   let &listchars = "tab:\u21e5\u00b7,trail:\u2423,extends:\u21c9,precedes:\u21c7,nbsp:\u26ad"
@@ -76,45 +114,15 @@ else
 endif
 set list
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" CUSTOM AUTOCMDS
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-augroup vimrcEx
-  " Clear all autocmds in the group
-  autocmd!
-  autocmd FileType text setlocal textwidth=78
-  " Jump to last cursor position unless it's invalid or in an event handler
-  autocmd BufReadPost *
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \   exe "normal g`\"" |
-    \ endif
-
-  "for ruby, autoindent with two spaces, always expand tabs
-  autocmd FileType ruby,haml,yaml,html,sass,cucumber,javascript set ai sw=2 sts=2 et
-  autocmd FileType python set sw=4 sts=4 et
-
-  autocmd! BufRead,BufNewFile *.sass setfiletype sass 
-
-  autocmd BufRead *.mkd  set ai formatoptions=tcroqn2 comments=n:&gt;
-  autocmd BufRead *.markdown  set ai formatoptions=tcroqn2 comments=n:&gt;
-
-  " Don't syntax highlight markdown because it's often wrong
-  autocmd! FileType mkd setlocal syn=off
-
-  " Leave the return key alone when in command line windows, since it's used
-  " to run commands there.
-  autocmd! CmdwinEnter * :unmap <cr>
-  autocmd! CmdwinLeave * :call MapCR()
-augroup END
 
 """""""""""""""""""""
 " Misc Map Keys     "
 """"""""""""""""""""" 
 
 " Map leader to comma. Like everybody else.
-let mapleader = ","
+" let mapleader = ","
 " Use leader leader to re-open last file
-nnoremap <leader><leader> <c-^>
+" nnoremap <leader><leader> <c-^>
 map <leader>y "*y
 " Move around splits with <c-hjkl>
 nnoremap <c-j> <c-w>j
@@ -134,7 +142,6 @@ call MapCR()
 noremap <F2> :set invpaste paste?<cr>
 set pastetoggle=<F2>
 set showmode
-
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " MULTIPURPOSE TAB KEY
@@ -166,178 +173,78 @@ function! RenameFile()
 endfunction
 map <leader>n :call RenameFile()<cr>
 
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" MAPS TO JUMP TO SPECIFIC COMMAND-T TARGETS AND FILES
+" Qargs
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>gr :topleft :split config/routes.rb<cr>
-function! ShowRoutes()
-    " Requires 'scratch' plugin
-    :topleft 100 :split __Routes__
-    " Make sure Vim doesn't write __Routes__ as a file
-    :set buftype=nofile
-    " Delete everything
-    :normal 1GdG
-    " Put routes output in buffer
-    :0r! rake -s routes
-    " Size window to number of lines (1 plus rake output
-    length)
-    :exec ":normal " . line("$") . _ "
-    " Move cursor to bottom
-    :normal 1GG
-    " Delete empty trailing line
-    :normal dd
+command! -nargs=0 -bar Qargs execute 'args' QuickfixFilenames()
+function! QuickfixFilenames()
+  " Building a hash ensures we get each buffer only once
+  let buffer_numbers = {}
+  for quickfix_item in getqflist()
+    let buffer_numbers[quickfix_item['bufnr']] = bufname(quickfix_item['bufnr'])
+  endfor
+  return join(map(values(buffer_numbers), 'fnameescape(v:val)'))
 endfunction
-map <leader>gR :call ShowRoutes()<cr>
-map <leader>jj:CommandTFlush<cr>\|:CommandT app/assets/javascripts<cr>
-map <leader>jv :CommandTFlush<cr>\|:CommandT app/assets/javascripts/backbone/views<cr>
-map <leader>jr :CommandTFlush<cr>\|:CommandT app/assets/javascripts/backbone/routers<cr>
-map <leader>jt :CommandTFlush<cr>\|:CommandT app/assets/javascripts/templates<cr>
-map <leader>jm :CommandTFlush<cr>\|:CommandT app/assets/javascripts/backbone/models<cr>
-map <leader>jc :CommandTFlush<cr>\|:CommandT app/assets/javascripts/backbone/collections<cr>
-map <leader>gv :CommandTFlush<cr>\|:CommandT app/views<cr>
-map <leader>gc :CommandTFlush<cr>\|:CommandT app/controllers<cr>
-map <leader>gm :CommandTFlush<cr>\|:CommandT app/models<cr>
-map <leader>gh :CommandTFlush<cr>\|:CommandT app/helpers<cr>
-map <leader>gl :CommandTFlush<cr>\|:CommandT lib<cr>
-map <leader>gp :CommandTFlush<cr>\|:CommandT public<cr>
-map <leader>gs :CommandTFlush<cr>\|:CommandT app/assets/stylesheets<cr>
-map <leader>gS :CommandTFlush<cr>\|:CommandT app/services/<cr>
-map <leader>gf :CommandTFlush<cr>\|:CommandT features<cr>
-map <leader>gG :topleft 100 :split Gemfile<cr>
-map <leader>gj :CommandTJump<cr>
-map <leader>gb :CommandTBuffer<cr>
-map <leader>gt :CommandTFlush<cr>\|:CommandTTag<cr>
-" map <leader>g :CommandTFlush<cr>\|:CommandT<cr>
-map <leader>t :CommandTFlush<cr>\|:CommandT<cr>
-map <leader>F :CommandTFlush<cr>\|:CommandT %%<cr>
 
 """"""""""""""""
 " Colors
 """""""""""""
-set t_Co=256 " 256 colors
-set background=dark
-set colorcolumn=80
-" let g:solarized_termcolors=256
-colorscheme jellybeans
+set t_Co=256
 
+colorscheme hybrid
 
-""""""""""""""""""""""""""""""""
-"Coffeescript specific commands for indenting
-"""""""""""""""""""""""""""""
-
-" :CoffeeCompile watch vert
-let coffe_compile_vert = 1
-"au BufNewFile,BufReadPost *.coffee setlocal sw=2
-au BufNewFile,BufReadPost *.coffee setl shiftwidth=2 expandtab
-" path to coffee lint config file for coffee vim
-let coffee_lint_options = '-f ~/.coffeelint'
-" path to coffee lint config for syntastic
-let syntastic_coffee_lint_options = '-f ~/.coffeelint'
-
-"""""""""""""""""""""""""""""""""
-" Syntastic Settings
-"""""""""""""""""""""""""""""""""
-
-let g:syntastic_error_symbol='✗'
-let g:syntastic_warning_symbol='⚠'
-let g:syntastic_mode_map = { 'mode': 'passive',
-      \ 'active_filetypes': ['javascript', 'coffeescript'],
-      \ 'passive_filetypes': [] }
-
-"""""""""""""""""""""""""""""""""
-" HTML Settings
-"""""""""""""""""""""""""""""""""
-
-let g:html_indent_inctags = "html,body,head,tbody"
-let g:html_indent_script1 = "inc"
-let g:html_indent_style1 = "inc"
-
+""""""""""""""""
+" .vimrc Reloader
+"""""""""""""
+augroup reload_vimrc
+    autocmd!
+    autocmd BufWritePost $MYVIMRC source $MYVIMRC
+augroup END
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" SWITCH BETWEEN TEST AND PRODUCTION CODE
+" CUSTOM AUTOCMDS
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-function! OpenTestAlternate()
-  let new_file = AlternateForCurrentFile()
-  exec ':e ' . new_file
-endfunction
-function! AlternateForCurrentFile()
-  let current_file = expand("%")
-  let new_file = current_file
-  let in_spec = match(current_file, '^spec/') != -1
-  let going_to_spec = !in_spec
-  let in_app = match(current_file, '\<controllers\>') != -1 || match(current_file, '\<models\>') != -1 || match(current_file, '\<views\>') != -1 || match(current_file, '\<helpers\>') != -1 || match(current_file, '\<js\>') != -1
-  if going_to_spec
-    if in_app
-      let new_file = substitute(new_file, '^app/', '', '')
-    end
-    let new_file = substitute(new_file, '\.rb$', '_spec.rb', '')
-    let new_file = 'spec/' . new_file
-  else
-    let new_file = substitute(new_file, '_spec\.rb$', '.rb', '')
-    let new_file = substitute(new_file, '^spec/', '', '')
-    if in_app
-      let new_file = 'app/' . new_file
-    end
-  endif
-  return new_file
-endfunction
-nnoremap <leader>. :call OpenTestAlternate()<cr>
+au  BufNewFile,BufRead *.us set syntax=html
+
+autocmd FileType ruby,haml,eruby,yaml,html,javascript,sass,cucumber,jst set ai sw=2 sts=2 et
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" RUNNING TESTS
+" SELECTA
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-map <leader>s :call RunTestFile()<cr>
-map <leader>S :call RunNearestTest()<cr>
-map <leader>a :call RunTests('')<cr>
-map <leader>c :w\|:!script/features<cr>
-map <leader>w :w\|:!script/features --profile wip<cr>
-
-function! RunTestFile(...)
-  if a:0
-    let command_suffix = a:1
-  else
-    let command_suffix = ""
-  endif
-
-  " Run the tests for the previously-marked file.
-  let in_test_file = match(expand("%"), '\(.feature\|_spec.rb\)$') != -1
-  if in_test_file
-    call SetTestFile()
-  elseif !exists("t:grb_test_file")
+" Run a given vim command on the results of fuzzy selecting from a given shell
+" command. See usage below.
+function! SelectaCommand(choice_command, selecta_args, vim_command)
+  try
+    let selection = system(a:choice_command . " | selecta " . a:selecta_args)
+  catch /Vim:Interrupt/
+    " Swallow the ^C so that the redraw below happens; otherwise there will be
+    " leftovers from selecta on the screen
+    redraw!
     return
-  end
-  call RunTests(t:grb_test_file . command_suffix)
+  endtry
+  redraw!
+  exec a:vim_command . " " . selection
 endfunction
 
-function! RunNearestTest()
-  let spec_line_number = line('.')
-  call RunTestFile(":" . spec_line_number . " -b")
+" Find all files in all non-dot directories starting in the working directory.
+" Fuzzy select one of those. Open the selected file with :e.
+nnoremap <leader>f :call SelectaCommand('find * -type f ! -path "public/dist/*" ! -path "tmp/*" ! -path "node_modules/*" ! -path "bower_components/*"', "", ":e")<cr>
+" ^(node_modules|tmp)/*
+
+function! SelectaBuffer()
+  let bufnrs = filter(range(1, bufnr("$")), 'buflisted(v:val)')
+  let buffers = map(bufnrs, 'bufname(v:val)')
+  call SelectaCommand('echo "' . join(buffers, "\n") . '"', "", ":b")
 endfunction
 
-function! SetTestFile()
-  " Set the spec file that tests will be run for.
-  let t:grb_test_file=@%
-endfunction
+" Fuzzy select a buffer. Open the selected buffer with :b.
+nnoremap <leader>b :call SelectaBuffer()<cr>
 
-function! RunTests(filename)
-  " Write the file and run tests for the given filename
-  :w
-  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-  :silent !echo;echo;echo;echo;echo;echo;echo;echo;echo;echo
-  if match(a:filename, '\.feature$') != -1
-    exec ":!script/features " . a:filename
-  else
-    if filereadable("script/test")
-      exec ":!script/test " . a:filename
-    elseif filereadable("Gemfile")
-      exec ":!bundle exec rspec --color " . a:filename
-    else
-      exec ":!rspec --color " . a:filename
-    end
-  end
+function! SelectaIdentifier()
+  " Yank the word under the cursor into the z register
+  normal "zyiw
+  " Fuzzy match files in the current directory, starting with the word under
+  " the cursor
+  call SelectaCommand('find * -type f ! -path "public/dist/*" ! -path "tmp/*" ! -path "node_modules/*" ! -path "bower_components/*"', "-s " . @z, ":e")
 endfunction
+nnoremap <c-g> :call SelectaIdentifier()<cr>
